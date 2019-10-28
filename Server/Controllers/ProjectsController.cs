@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Server.Config;
 using Server.Data;
 using Server.Models;
 
@@ -14,10 +17,12 @@ namespace Server.Controllers
     public class ProjectsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IOptions<RepositoryConfig> _config;
 
-        public ProjectsController(ApplicationDbContext context)
+        public ProjectsController(ApplicationDbContext context, IOptions<RepositoryConfig> config)
         {
             _context = context;
+            _config = config;
         }
 
         // GET: Projects
@@ -66,8 +71,12 @@ namespace Server.Controllers
             {
                 _context.Add(project);
                 await _context.SaveChangesAsync();
+
+                string rootedPath = Repository.Init(_config.Value.Path + @"\" + project.Name, true);
+
                 return RedirectToAction(nameof(Index));
             }
+
             //ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.OwnerID);
             return View(project);
         }
