@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,7 +12,9 @@ namespace Server.Models
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public string UserId { get; set; }
-        public ApplicationUser User { get; set; }
+        public string OwnerID { get; set; }
+
+        [ForeignKey("OwnerID")]
+        public ApplicationUser Owner { get; set; }
     }
 }

@@ -25,8 +25,7 @@ namespace Server.Controllers.Api
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
         {
-            var applicationDbContext = _context.Projects.Include(p => p.User);
-            return await applicationDbContext.ToListAsync();
+            return await _context.Projects.ToListAsync();
         }
 
         // GET: api/Projects/5
@@ -34,7 +33,7 @@ namespace Server.Controllers.Api
         public async Task<ActionResult<Project>> GetProject(int id)
         {
             var project = await _context.Projects
-                .Include(u => u.User)
+                .Include(o => o.Owner)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (project == null)

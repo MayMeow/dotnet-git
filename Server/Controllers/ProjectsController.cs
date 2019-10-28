@@ -23,7 +23,7 @@ namespace Server.Controllers
         // GET: Projects
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Projects.Include(p => p.User);
+            var applicationDbContext = _context.Projects.Include(p => p.Owner);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -36,7 +36,7 @@ namespace Server.Controllers
             }
 
             var project = await _context.Projects
-                .Include(p => p.User)
+                .Include(p => p.Owner)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (project == null)
             {
@@ -49,7 +49,7 @@ namespace Server.Controllers
         // GET: Projects/Create
         public IActionResult Create()
         {
-            //ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id");
+            //ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id");
             return View();
         }
 
@@ -58,10 +58,9 @@ namespace Server.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,UserId")] Project project)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,OwnerID")] Project project)
         {
-            // get authenticated user
-            project.UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            project.OwnerID = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             if (ModelState.IsValid)
             {
@@ -69,7 +68,7 @@ namespace Server.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            //ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.UserId);
+            //ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.OwnerID);
             return View(project);
         }
 
@@ -86,7 +85,7 @@ namespace Server.Controllers
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.UserId);
+            ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.OwnerID);
             return View(project);
         }
 
@@ -95,7 +94,7 @@ namespace Server.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,UserId")] Project project)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,OwnerID")] Project project)
         {
             if (id != project.Id)
             {
@@ -122,7 +121,7 @@ namespace Server.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.UserId);
+            ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.OwnerID);
             return View(project);
         }
 
@@ -135,7 +134,7 @@ namespace Server.Controllers
             }
 
             var project = await _context.Projects
-                .Include(p => p.User)
+                .Include(p => p.Owner)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (project == null)
             {
