@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Server.App.Git;
 using Server.Config;
 using Server.Data;
 using Server.Models;
@@ -33,6 +35,7 @@ namespace Server.Controllers
         }
 
         // GET: Projects/Details/5
+        [HttpGet("Projects/{id}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -47,6 +50,11 @@ namespace Server.Controllers
             {
                 return NotFound();
             }
+
+            var repo = new RepoBrowser(Path.Combine(_config.Value.Path, project.Name));
+            var treeObjects = repo.GetTree(null, "master", null);
+
+            ViewBag.treeObjects = treeObjects;
 
             return View(project);
         }

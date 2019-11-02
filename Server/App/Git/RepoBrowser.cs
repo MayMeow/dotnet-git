@@ -1,4 +1,5 @@
 ﻿using LibGit2Sharp;
+using Server.Models.Git;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,6 +80,82 @@ namespace Server.App.Git
         public Repository GetRepository()
         {
             return _repository;
+        }
+
+        /// <summary>
+        /// Browse tree of given repository by branch
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="name"></param>
+        /// <param name="referenceName"></param>
+        /// <returns></returns>
+        public List<TreeObject> GetTree(string path, string name, string referenceName)
+        {
+            var commit = GetCommitByName(name, referenceName);
+            var tree = commit.Tree;
+
+            var treeObjects = new List<TreeObject>();
+
+            if (String.IsNullOrEmpty(path))
+            {
+                foreach (var item in tree)
+                {
+                    var commitMessages = GetHistory(item.Path, null, null);
+
+                    try
+                    {
+                        treeObjects.Add(new TreeObject
+                        {
+                            Name = item.Name,
+                            Sha = item.Target.Sha,
+                            Type = item.TargetType.ToString(),
+                            Path = item.Path,
+                            CommitMessage = commitMessages.First().MessageShort,
+                            When = commitMessages.Take(1).First().Author.When
+                        });
+                    } catch (ArgumentNullException e)
+                    {
+                        //
+                    } catch (InvalidOperationException e)
+                    {
+                        //
+                    }
+                }
+            } else
+            {
+                var subTree = tree[path];
+
+                if (subTree.TargetType == TreeEntryTargetType.Tree)
+                {
+                    foreach (var item in (Tree)subTree.Target)
+                    {
+                        var commitMessages = GetHistory(item.Path, null, null);
+
+                        try
+                        {
+                            treeObjects.Add(new TreeObject
+                            {
+                                Name = item.Name,
+                                Sha = item.Target.Sha,
+                                Type = item.TargetType.ToString(),
+                                Path = item.Path,
+                                CommitMessage = commitMessages.First().MessageShort,
+                                When = commitMessages.Take(1).First().Author.When
+                            });
+                        }
+                        catch (ArgumentNullException e)
+                        {
+                            //
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            //
+                        }
+                    }
+                }
+            }
+
+            return treeObjects;
         }
     }
 }

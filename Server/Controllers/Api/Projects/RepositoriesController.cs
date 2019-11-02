@@ -33,21 +33,24 @@ namespace Server.Controllers.Api.Projects
 
         /// <summary>
         /// Returns items from repository
+        /// example https://localhost:44311/api/Projects/Repositories/tree/7/32-sms-brana/src/Controller
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("tree/{id}")]
-        public async Task<List<TreeObject>> GetTree(int id)
+        [HttpGet("tree/{id}/{name}/{*path}")]
+        public async Task<List<TreeObject>> GetTree(int id, string name, string path)
         {
-            string path = HttpContext.Request.Query["path"];
+            //string path = HttpContext.Request.Query["path"];
             var project = await _context.Projects.FindAsync(id);
             _repository = new RepoBrowser(Path.Combine(_config.Value.Path, project.Name));
             
             var treeObjects = new List<Server.Models.Git.TreeObject>();
-            var tree = _repository.GetCommitByName("master", null).Tree;
+            var tree = _repository.GetCommitByName(name, null).Tree;
 
             string commitMessage = null;
             DateTimeOffset when = DateTimeOffset.Now;
+
+            return _repository.GetTree(path, name, null);
 
             if (string.IsNullOrEmpty(path))
             {

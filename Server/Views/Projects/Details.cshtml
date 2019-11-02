@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Details";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    List<Server.Models.Git.TreeObject> tree = ViewBag.treeObjects;
 }
 
 <h1>Details</h1>
@@ -31,6 +33,29 @@
         </dd>
     </dl>
 </div>
+
+<div>
+    <table class="table table-sm">
+        @foreach(var item in tree)
+        {
+            <tr>
+                <td>
+                    @if(item.Type == "Tree")
+                    {
+                        <i class="fas fa-folder"></i>
+                    } else
+                    {
+                        <i class="far fa-file-alt"></i>
+                    }
+                </td>
+                <td>@item.Name</td>
+                <td>@item.CommitMessage</td>
+                <td>@item.When</td>
+            </tr>
+        }
+    </table>
+</div>
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
