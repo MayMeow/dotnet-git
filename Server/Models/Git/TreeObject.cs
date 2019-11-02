@@ -12,5 +12,8 @@ namespace Server.Models.Git
         public string Path { get; set; }
         public string Type { get; set; }
         public string Content { get; set; }
+
+        public string CommitMessage { get; set; }
+        public DateTimeOffset When { get; set; }
     }
 }

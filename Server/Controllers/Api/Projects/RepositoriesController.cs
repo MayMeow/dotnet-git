@@ -8,6 +8,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Server.App.Git;
 using Server.Config;
 using Server.Data;
 using Server.Models.Git;
@@ -19,7 +20,7 @@ namespace Server.Controllers.Api.Projects
     [ApiController]
     public class RepositoriesController : ControllerBase
     {
-        Repository _repository;
+        RepoBrowser _repository;
 
         private readonly ApplicationDbContext _context;
         private readonly IOptions<RepositoryConfig> _config;
@@ -40,20 +41,39 @@ namespace Server.Controllers.Api.Projects
         {
             string path = HttpContext.Request.Query["path"];
             var project = await _context.Projects.FindAsync(id);
-            _repository = new Repository(Path.Combine(_config.Value.Path, project.Name));
+            _repository = new RepoBrowser(Path.Combine(_config.Value.Path, project.Name));
             
             var treeObjects = new List<Server.Models.Git.TreeObject>();
-            var tree = _repository.Head.Tip.Tree;
+            var tree = _repository.GetCommitByName("master", null).Tree;
+
+            string commitMessage = null;
+            DateTimeOffset when = DateTimeOffset.Now;
 
             if (string.IsNullOrEmpty(path))
             {
                 foreach (var item in tree)
                 {
+                    var CommitMessages = _repository.GetHistory(item.Path, null, null);
+
+                    try
+                    {
+                        commitMessage = CommitMessages.First().MessageShort;
+                        when = CommitMessages.Take(1).First().Author.When;
+                    } catch (ArgumentNullException e)
+                    {
+                        //
+                    } catch (InvalidOperationException e)
+                    {
+                        //
+                    }
+
                     treeObjects.Add(new TreeObject { 
                         Name = item.Name,
                         Sha = item.Target.Sha,
                         Type = item.TargetType.ToString(),
-                        Path = item.Path
+                        Path = item.Path,
+                        CommitMessage = commitMessage,
+                        When = when
                     });
                 }
             } else
@@ -65,11 +85,29 @@ namespace Server.Controllers.Api.Projects
                 {
                     foreach (var item in (Tree)xxx.Target)
                     {
+                        var CommitMessages = _repository.GetHistory(item.Path, null, null);
+
+                        try
+                        {
+                            commitMessage = CommitMessages.First().MessageShort;
+                            when = CommitMessages.Take(1).First().Author.When;
+                        }
+                        catch (ArgumentNullException e)
+                        {
+                            //
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            //
+                        }
+
                         treeObjects.Add(new TreeObject {
                             Name = item.Name,
                             Sha = item.Target.Sha,
                             Type = item.TargetType.ToString(),
-                            Path = item.Path
+                            Path = item.Path,
+                            CommitMessage = commitMessage,
+                            When = when
                         });
                     }
                 }
@@ -114,9 +152,9 @@ namespace Server.Controllers.Api.Projects
         {
             string path = HttpContext.Request.Query["path"];
             var project = await _context.Projects.FindAsync(id);
-            _repository = new Repository(Path.Combine(_config.Value.Path, project.Name));
+            _repository = new RepoBrowser(Path.Combine(_config.Value.Path, project.Name));
 
-            var tree = _repository.Head.Tip.Tree;
+            var tree = _repository.GetCommitByName(null,null).Tree;
             var xxx = tree[path];
 
             if (xxx != null)
