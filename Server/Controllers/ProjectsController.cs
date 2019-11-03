@@ -52,9 +52,44 @@ namespace Server.Controllers
             }
 
             var repo = new RepoBrowser(Path.Combine(_config.Value.Path, project.Name));
-            var treeObjects = repo.GetTree(null, "master", null);
+            var treeObjects = repo.GetTree(null, project.DefaultBranch, null);
 
             ViewBag.treeObjects = treeObjects;
+
+            return View(project);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="name"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        [HttpGet("Projects/{id}/tree/{branch}/{*path}")]
+        public async Task<IActionResult> Tree(int id , string branch, string path)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var project = await _context.Projects
+                .Include(p => p.Owner)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var repo = new RepoBrowser(Path.TrimEndingDirectorySeparator(Path.Combine(_config.Value.Path, project.Name)));
+            var treeObjects = repo.GetTree(path, branch, null);
+
+            ViewBag.treeObjects = treeObjects;
+            ViewBag.currentBranch = branch;
+
+            ViewBag.parentPath = String.IsNullOrEmpty(path) ? "" : Path.TrimEndingDirectorySeparator("/" + Path.GetDirectoryName(path));
+            
 
             return View(project);
         }
@@ -71,7 +106,7 @@ namespace Server.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,OwnerID")] Project project)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,DefaultBranch")] Project project)
         {
             project.OwnerID = User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
@@ -80,7 +115,7 @@ namespace Server.Controllers
                 _context.Add(project);
                 await _context.SaveChangesAsync();
 
-                string rootedPath = Repository.Init(_config.Value.Path + @"\" + project.Name, true);
+                string rootedPath = Repository.Init(Path.Combine(_config.Value.Path, project.Name), true);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -102,7 +137,7 @@ namespace Server.Controllers
             {
                 return NotFound();
             }
-            ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.OwnerID);
+            //ViewData["OwnerID"] = new SelectList(_context.Set<ApplicationUser>(), "Id", "Id", project.OwnerID);
             return View(project);
         }
 
@@ -111,7 +146,7 @@ namespace Server.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,OwnerID")] Project project)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,DefaultBranch")] Project project)
         {
             if (id != project.Id)
             {

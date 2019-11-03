@@ -1,0 +1,59 @@
+﻿@model Server.Models.Project
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    List<Server.Models.Git.TreeObject> tree = ViewBag.treeObjects;
+    string CurrentBranch = ViewBag.currentBranch;
+    string ParentPath = ViewBag.parentPath;
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Tree</h4>
+    <hr />
+
+<div>
+    <table class="table table-sm">
+        <tr>
+            <td colspan="3">
+                <a href="/projects/@Model.Id/tree/@CurrentBranch@ParentPath">..</a>
+            </td>
+        </tr>
+
+        @foreach (var item in tree)
+        {
+            <tr>
+                <td>
+                    @if (item.Type == "Tree")
+                    {
+                        <i class="fas fa-folder"></i>
+                    }
+                    else
+                    {
+                        <i class="far fa-file-alt"></i>
+                    }
+                </td>
+                <td>
+                    @if (item.Type == "Tree")
+                    {
+                        <a href="/projects/@Model.Id/tree/@CurrentBranch/@item.Path">@item.Name</a>
+                    }
+                    else
+                    {
+                        <a href="/projects/@Model.Id/blob/@CurrentBranch/@item.Path">@item.Name</a>
+                    }
+                </td>
+                <td>@item.CommitMessage</td>
+                <td class="text-right">@item.When</td>
+            </tr>
+        }
+    </table>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

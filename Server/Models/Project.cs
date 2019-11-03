@@ -16,5 +16,7 @@ namespace Server.Models
 
         [ForeignKey("OwnerID")]
         public ApplicationUser Owner { get; set; }
+
+        public string DefaultBranch { get; set; }
     }
 }

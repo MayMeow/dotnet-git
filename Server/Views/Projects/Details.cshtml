@@ -13,22 +13,30 @@
     <h4>Project</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Name)
         </dd>
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Description)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Description)
         </dd>
-        <dt class = "col-sm-2">
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DefaultBranch)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DefaultBranch)
+        </dd>
+
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Owner)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Owner.NormalizedUserName)
         </dd>
     </dl>
@@ -48,7 +56,16 @@
                         <i class="far fa-file-alt"></i>
                     }
                 </td>
-                <td>@item.Name</td>
+                <td>
+                    @if (item.Type == "Tree")
+                    {
+                        <a href="/projects/@Model.Id/tree/@Model.DefaultBranch/@item.Path">@item.Name</a>
+                    }
+                    else
+                    {
+                        <a href="/projects/@Model.Id/blob/@Model.DefaultBranch/@item.Path">@item.Name</a>
+                    }
+                </td>
                 <td>@item.CommitMessage</td>
                 <td class="text-right">@item.When</td>
             </tr>
